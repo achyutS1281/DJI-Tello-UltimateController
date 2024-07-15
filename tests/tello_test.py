@@ -2,7 +2,7 @@
 # For a more fully featured example see manual-control-pygame.py
 #
 # Use W, A, S, D for moving, E, Q for rotating and R, F for going up and down.
-# When starting the script the Tello will takeoff, pressing ESC makes it land
+# When starting the script the Tello will take off, pressing ESC makes it land
 #  and the script exit.
 
 from djitellopy import Tello

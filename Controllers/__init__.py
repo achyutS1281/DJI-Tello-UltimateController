@@ -1,3 +1,3 @@
-from gestures.gesture_recognition import GestureRecognition, GestureBuffer
-from gestures.tello_gesture_controller import TelloGestureController
-from gestures.tello_keyboard_controller import TelloKeyboardController
+from Controllers.gesture_recognition import GestureRecognition, GestureBuffer
+from Controllers.tello_gesture_controller import TelloGestureController
+from Controllers.tello_keyboard_controller import TelloKeyboardController
