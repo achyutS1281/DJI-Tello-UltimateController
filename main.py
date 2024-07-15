@@ -242,10 +242,10 @@ def main():
         cv.putText(debug_image, "Battery: {}".format(battery_status), (5, 720 - 5),
                    cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         cv.imshow('Ultimate Tello Controller', debug_image)
-        if key == ord('=') and scale <= 0.95:
+        if key == ord('-') and scale <= 0.95:
             scale += 0.05  # +5
 
-        if key == ord('-') and scale >= 0.06:
+        if key == ord('=') and scale >= 0.06:
             scale -= 0.05  # +5
 
         if key == ord('o'):
