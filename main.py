@@ -3,7 +3,6 @@
 import configargparse
 
 import cv2 as cv
-
 from Controllers.gesture_recognition import GestureRecognition, GestureBuffer
 from Controllers.tello_keyboard_controller import TelloKeyboardController
 from Controllers.tello_gesture_controller import TelloGestureController
@@ -30,11 +29,11 @@ def get_args():
                         help='min_detection_confidence',
                         type=float)
     parser.add_argument("--min_tracking_confidence",
-               help='min_tracking_confidence',
-               type=float)
+                        help='min_tracking_confidence',
+                        type=float)
     parser.add_argument("--buffer_len",
-               help='Length of gesture buffer',
-               type=int)
+                        help='Length of gesture buffer',
+                        type=int)
 
     args = parser.parse_args()
 
@@ -60,6 +59,7 @@ def main():
     global gesture_id
     global battery_status
     global pause
+    global in_flight
     # Argument parsing
     args = get_args()
     KEYBOARD_CONTROL = args.is_keyboard
@@ -67,7 +67,7 @@ def main():
     OBJECT_CONTROL = False
     WRITE_CONTROL = False
     in_flight = False
-
+    pause = False
     # Camera preparation
     tello = Tello()
     tello.connect()
@@ -84,16 +84,21 @@ def main():
     gesture_buffer = GestureBuffer(buffer_len=args.buffer_len)
 
     def takeoff():
+        global pause
+        global in_flight
         pause = True
         tello.takeoff()
         in_flight = True
         pause = False
 
     def land():
+        global pause
+        global in_flight
         pause = True
         tello.land()
         in_flight = False
         pause = False
+
 
     def tello_control(key, keyboard_controller, gesture_controller):
         global gesture_buffer
@@ -166,11 +171,11 @@ def main():
         elif key == 32:  # Space
             if not in_flight:
                 # Take-off drone
-                threading.Thread(target=takeoff)
+                threading.Thread(target=takeoff).start()
 
             elif in_flight:
                 # Land tello
-                threading.Thread(target=land)
+                threading.Thread(target=land).start()
 
         elif key == ord('k'):
             mode = 0
@@ -179,6 +184,8 @@ def main():
             SPEECH_CONTROL = False
             OBJECT_CONTROL = False
             tello.send_rc_control(0, 0, 0, 0)  # Stop moving
+            keyboard_controller.stop()
+            keyboard_controller.start()
             keyboard_controller.start()
             speech_controller.stop()
         elif key == ord('g'):

@@ -1,3 +1,5 @@
+import threading
+
 from djitellopy import Tello
 from pynput.keyboard import Key, Listener
 import cv2
@@ -8,28 +10,25 @@ class TelloKeyboardController:
         self.thread = None
         self.drone = tello
         self.running = False
+        self.left_right = 0
+        self.up_down = 0
+        self.forward_back = 0
+        self.yaw = 0
 
     def start(self):
-        left_right = 0
-        up_down = 0
-        forward_back = 0
-        yaw = 0
+
 
         def on_press(InputKey):
-            global left_right
-            global up_down
-            global forward_back
-            global yaw
             try:
                 key = InputKey.char
                 if key == 'w':
-                    forward_back = 30
+                    self.forward_back = 30
                 elif key == 's':
-                    forward_back = -30
+                    self.forward_back = -30
                 elif key == 'a':
-                    left_right = -25
+                    self.left_right = -25
                 elif key == 'd':
-                    left_right = 25
+                    self.left_right = 25
                 elif key == 'u':
                     self.drone.flip('f')
                 elif key == 'j':
@@ -88,22 +87,18 @@ class TelloKeyboardController:
 
             except AttributeError:
                 if InputKey == Key.up:
-                    up_down = 25
+                    self.up_down = 25
                 elif InputKey == Key.down:
-                    up_down = -25
+                    self.up_down = -25
                 elif InputKey == Key.left:
-                    yaw = -25
+                    self.yaw = -25
                 elif InputKey == Key.right:
-                    yaw = 25
+                    self.yaw = 25
                 elif InputKey == Key.space:
                     self.drone.takeoff()
-            self.drone.send_rc_control(left_right, forward_back, up_down, yaw)
+            self.drone.send_rc_control(self.left_right, self.forward_back, self.up_down, self.yaw)
 
         def on_release(key):
-            global left_right
-            global up_down
-            global forward_back
-            global yaw
             print('{0} released'.format(
                 key))
             if key == Key.esc:
@@ -112,29 +107,32 @@ class TelloKeyboardController:
             try:
                 key = key.char
                 if key == 'w':
-                    forward_back = 0
+                    self.forward_back = 0
                 elif key == 's':
-                    forward_back = 0
+                    self.forward_back = 0
                 elif key == 'a':
-                    left_right = 0
+                    self.left_right = 0
                 elif key == 'd':
-                    left_right = 0
+                    self.left_right = 0
             except AttributeError:
                 if key == Key.up:
-                    up_down = 0
+                    self.up_down = 0
                 elif key == Key.down:
-                    up_down = 0
+                    self.up_down = 0
                 elif key == Key.left:
-                    yaw = 0
+                    self.yaw = 0
                 elif key == Key.right:
-                    yaw = 0
-            self.drone.send_rc_control(left_right, forward_back, up_down, yaw)
+                    self.yaw = 0
+            self.drone.send_rc_control(self.left_right, self.forward_back, self.up_down, self.yaw)
 
-        if not self.running:
-            with Listener(on_press=on_press, on_release=on_release) as listener:
-                self.thread = listener
-                self.running = True
-                self.thread.start()
+        def begin():
+            if not self.running and not (not self.thread is None and self.thread.is_alive()):
+                with Listener(on_press=on_press, on_release=on_release) as listener:
+                    self.thread = listener
+                    self.running = True
+                    listener.join()
+
+        threading.Thread(target=begin).start()
 
     def stop(self):
         if self.running:

@@ -11,7 +11,7 @@ class Speech_Controller:
         self.drone = tello
         self.text = ""
         self.thread = None
-        self.stop = False
+        self.stopBool = False
         self.running = False
 
     def start(self):
@@ -50,23 +50,24 @@ class Speech_Controller:
             while True:
                 with sr.Microphone() as mic:
                     r.adjust_for_ambient_noise(source=mic, duration=1)
-                    if self.stop:
+                    if self.stopBool:
                         break
                     print("say something:")
                     audio = r.listen(source=mic, phrase_time_limit=2)
-                    if self.stop:
+                    if self.stopBool:
                         break
                 self.text = eval(r.recognize_vosk(audio_data=audio, language="en"))["text"]
                 print(self.text)
-                if self.stop:
+                if self.stopBool:
                     break
                 on_speech(self.text)
 
         if not self.running:
-            self.thread = threading.Thread(target=begin).start()
+            self.thread = threading.Thread(target=begin)
+            self.thread.start()
             self.running = True
 
     def stop(self):
         if self.running:
-            self.stop = True
+            self.stopBool = True
             self.running = False
